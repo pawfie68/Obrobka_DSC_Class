@@ -5,6 +5,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using OfficeOpenXml;
+using OfficeOpenXml.Drawing.Chart;
+using OfficeOpenXml.Style;
 
 namespace Obrobka_DSC_Class
 {
@@ -63,6 +66,92 @@ namespace Obrobka_DSC_Class
                 supportingValue.fileNumerator++;
             }
             SaveBigFuckingData(big, path);
+            GenerateExcelFile(big, path);
+
+        }
+
+        private static void GenerateExcelFile(BigFuckingListOfAllData big, string path)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            ExcelPackage excel = new ExcelPackage();
+            var workSheet = excel.Workbook.Worksheets.Add("Sheet1");
+            var chartSheet = excel.Workbook.Worksheets.Add("Chart");
+            //var test =excel.Workbook.
+            
+            workSheet.TabColor = System.Drawing.Color.Black;
+            List<string> splited;
+            
+            for (int i = 0; i < big.fileNames.Count; i++)
+            {  
+                splited = big.fileNames[i].Split(separator).ToList();
+                int j = 1;
+                foreach (var item in splited)
+                {
+                    Console.WriteLine("split split filename" + item);
+                    workSheet.Cells[1, j].Value = item;
+                    j++;
+                }
+            }
+
+
+            for (int i = 0; i < big.headers.Count; i++)
+            {
+                splited = big.headers[i].Split(separator).ToList();
+                int j = 1;
+                foreach (var item in splited)
+                {
+                    
+                    Console.WriteLine("split split header" + item);
+                    workSheet.Cells[2, j].Value = item;
+                    j++;
+                }
+            }
+
+
+            for (int j = 0; j < big.allData[1].Count; j++)
+            {
+                for (int i = 0; i < big.allData.Count; i++)
+                {
+                   
+                    workSheet.Cells[j+3, i+1].Value = big.allData[i][j];
+                }
+    
+            }
+
+            var myChart = chartSheet.Drawings.AddChart("Integral", eChartType.XYScatter);
+            myChart.SetSize(1000, 1000);
+            myChart.XAxis.Format = "# ##0";
+            myChart.PlotArea.Border.Width = 5;
+            myChart.XAxis.Title.Text ="Time [s]";
+            myChart.YAxis.Title.Text = "DSC [mW/mg]";
+            
+            myChart.XAxis.RemoveGridlines();
+            myChart.YAxis.RemoveGridlines();
+           // myChart.YAxis.LabelPosition = OfficeOpenXml.Drawing.Chart.eTickLabelPosition.;
+               
+
+
+
+
+            for (int i = 2; i <= 5; i++)
+            {
+                var series = myChart.Series.Add("Sheet1!B5:B9000", "Sheet1!A5:A9000");
+            }
+
+
+            string p_strPath = path + "\\obrobione_excel.xlsx";
+
+            if (File.Exists(p_strPath))
+                File.Delete(p_strPath);
+
+            // Create excel file on physical disk 
+            FileStream objFileStrm = File.Create(p_strPath);
+            objFileStrm.Close();
+
+            // Write content to excel file 
+            File.WriteAllBytes(p_strPath, excel.GetAsByteArray());
+            //Close Excel package
+            excel.Dispose();
         }
 
         private static void SaveBigFuckingData(BigFuckingListOfAllData big, string path)
@@ -70,14 +159,14 @@ namespace Obrobka_DSC_Class
             StreamWriter streamWriter = File.CreateText(path + "\\sumary_.txt");
             foreach (var item in big.fileNames)
             {
-                streamWriter.Write(item + "; ");
+                streamWriter.Write(item);
             }
-            streamWriter.WriteLine("\n\r");
+            streamWriter.WriteLine();
             foreach (var item in big.headers)
             {
-                streamWriter.Write(item + "; ");
+                streamWriter.Write(item);
             }
-            streamWriter.WriteLine("\n\r");
+            streamWriter.WriteLine();
 
 
             
@@ -86,7 +175,7 @@ namespace Obrobka_DSC_Class
                 for (int i = 0; i < big.allData.Count; i++)
                 {
      
-                    streamWriter.Write(big.allData[i][j] + "; ");
+                    streamWriter.Write(big.allData[i][j] + ";");
 
 
                 }
@@ -111,7 +200,7 @@ namespace Obrobka_DSC_Class
 
             foreach (var item in measurement.headersOfTable)
             {
-                headers += item + "; ";
+                headers += item + ";";
 
             }
             big.headers.Add(headers);
