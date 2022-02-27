@@ -18,13 +18,13 @@ namespace Obrobka_DSC_Class
         {
             InfotionAboutFiles infotionAboutFiles = new InfotionAboutFiles();
             DecimalSeparatorToDot();
-
-
+            PrintTableOfHeats();
             List<float> heatOfPolymerization = new List<float>();
+            List<float> heatOfFunctionalGroup = new List<float>();
             Createfolder(InfotionAboutFiles.path);
-            ShowTextFilesInMainFolder(InfotionAboutFiles.fileInfos, heatOfPolymerization);
+            ShowTextFilesInMainFolder(InfotionAboutFiles.fileInfos, heatOfPolymerization, heatOfFunctionalGroup);
 
-            ConvertFiles(InfotionAboutFiles.fileInfos, InfotionAboutFiles.path, heatOfPolymerization);
+            ConvertFiles(InfotionAboutFiles.fileInfos, InfotionAboutFiles.path, heatOfPolymerization, heatOfFunctionalGroup);
 
 
             // Console.WriteLine("Hello World!");
@@ -36,10 +36,30 @@ namespace Obrobka_DSC_Class
             Console.ResetColor();
         }
 
-        private static void ConvertFiles(FileInfo[] fileInfos, string path, List<float> heatOfPolymerization)
+        private static void PrintTableOfHeats()
+        {
+            Console.WriteLine("Monomer          Polymerization heat J/g   PolymHeat 1f group [J/mol] ");
+            Console.WriteLine("CADE             768,9                     96700");
+            Console.WriteLine("HDDGE            877,1                     101000");
+            Console.WriteLine("BDDGE            998,5                     101000");
+            Console.WriteLine("TMPTGE           1002,1                     101000");
+            Console.WriteLine("BPADGE           593,4                     101000");
+            Console.WriteLine("RDGE             908,9                     101000");
+            Console.WriteLine("TMTGE            658,0                     101000");
+            Console.WriteLine("OXT101           722,9                     84000");
+            Console.WriteLine("OXT121           477,0                     84000");
+            Console.WriteLine("OXT221           783,9                     84000");
+            Console.WriteLine("S140             407,2                     84000");
+            Console.WriteLine("S160             409,2                     84000");
+            Console.WriteLine("For mixtures, use proportional values");
+
+        }
+
+        private static void ConvertFiles(FileInfo[] fileInfos, string path, List<float> heatOfPolymerization, List<float> heatOfFunctionalGroup)
         {
             SupportingValue supportingValue = new SupportingValue(0, 0, 0, 0, 0, 0, 0, 0, false, 0);
             BigFuckingListOfAllData big = new BigFuckingListOfAllData();
+
 
             foreach (var file in InfotionAboutFiles.fileInfos)
             {
@@ -56,52 +76,38 @@ namespace Obrobka_DSC_Class
                 {
                     Console.Write('▒');
                     Measurement measurement = new Measurement();
-
                     SplitLinesIntoSingleValues(lines, measurement, supportingValue);
                     CalculateIntegral(measurement, supportingValue);
-                    
                     CalculateIntegralSum(measurement);
-                    
-                    CalculateRpValue(measurement, heatOfPolymerization, supportingValue.fileNumerator);
+                    CalculateRpValue(measurement, heatOfFunctionalGroup, supportingValue.fileNumerator);
                     CalculateConversion(measurement, heatOfPolymerization, supportingValue.fileNumerator);
-                    // PrintTableReduced(measurement);
-                    
                     SaveFileWithCalculatedValues(measurement, file, path);
-                    
                     AddDataToBigFuckingData(big, measurement, file, heatOfPolymerization);
-                    
                 }
                 supportingValue.fileNumerator++;
                 Console.Write('▒');
             }
             Console.WriteLine();
-            
-           
             SaveBigFuckingData(big, path);
-            //Console.WriteLine("SAving bfg - end");
-
-            //Console.WriteLine("SAving excl file");
             GenerateExcelFile(big, path, supportingValue);
-            //Console.WriteLine("SAving excl file - end");
-
         }
 
 
 
         private static void GenerateExcelFile(BigFuckingListOfAllData big, string path, SupportingValue supportingValue)
         {
-            
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             ExcelPackage excel = new ExcelPackage();
             var workSheet = excel.Workbook.Worksheets.Add("Sheet1");
-
-            // var chartSheet2 = excel.Workbook.Worksheets.Add("Chart_Integral");
+            var summaryTable = excel.Workbook.Worksheets.Add("Summary Table");
             int numberOfDataSeries = (int)Math.Ceiling((double)big.allData.Count / (int)supportingValue.fileNumerator);
             workSheet.TabColor = System.Drawing.Color.Black;
             List<string> splited;
 
             for (int i = 0; i < big.fileNames.Count; i++)
             {
+                big.fileNames[i] = big.fileNames[i].Replace("ExpDat_", "");
+                big.fileNames[i] = big.fileNames[i].Replace(".txt", "");
                 splited = big.fileNames[i].Split(separator).ToList();
                 workSheet.Cells[1, (i * numberOfDataSeries) + 1].Value = splited[0];
             }
@@ -125,10 +131,37 @@ namespace Obrobka_DSC_Class
                     workSheet.Cells[j + 3, i + 1].Value = big.allData[i][j];
                 }
             }
-            
-            CreateExcelChart(excel, workSheet, numberOfDataSeries, big);
-            
 
+            for (int i = 0; i < supportingValue.fileNumerator; i++)
+            {
+                summaryTable.Cells[i + 2, 1].Value = big.fileNames[i].Replace(";", " ");
+            }
+
+            summaryTable.Cells[1, 2].Value = "max DSC [mW/mg]";
+            summaryTable.Cells[1, 3].Value = "Time [s]";
+            summaryTable.Cells[1, 4].Value = "Max Rp [mol dm-3 s-1]";
+            summaryTable.Cells[1, 5].Value = "Max Rp time [s]";
+            summaryTable.Cells[1, 6].Value = "Max Conversion [%]";
+            summaryTable.Cells[1, 7].Value = "T ind [s]";
+            summaryTable.Cells[1, 8].Value = "directional coefficient DSC";
+            summaryTable.Cells[1, 9].Value = "directional coefficient Rp";
+            summaryTable.Cells[1, 10].Value = "directional coefficient Conversion";
+
+            for (int i = 0; i < (int)supportingValue.fileNumerator; i++)
+            {
+                summaryTable.Cells[i + 2, 2].Value = big.maxDSC[i];
+                summaryTable.Cells[i + 2, 3].Value = big.maxDSCTime[i];
+                summaryTable.Cells[i + 2, 4].Value = big.maxRp[i];
+                summaryTable.Cells[i + 2, 5].Value = big.maxRpTime[i];
+                summaryTable.Cells[i + 2, 6].Value = big.maxConversion[i];
+                summaryTable.Cells[i + 2, 7].Value = big.inductionTime[i];
+                summaryTable.Cells[i + 2, 8].Value = big.tangentialDSC[i];
+                summaryTable.Cells[i + 2, 9].Value = big.tangentialRp[i];
+                summaryTable.Cells[i + 2, 10].Value = big.tangentialConversion[i];
+            }
+            summaryTable.Cells["A1:ZZZ30"].AutoFitColumns();
+
+            CreateExcelChart(excel, workSheet, numberOfDataSeries, big);
             string p_strPath = path + "\\obrobione_excel.xlsx";
 
             if (File.Exists(p_strPath))
@@ -142,7 +175,7 @@ namespace Obrobka_DSC_Class
             File.WriteAllBytes(p_strPath, excel.GetAsByteArray());
             //Close Excel package
             excel.Dispose();
-           
+
         }
 
         private static void CreateExcelChart(ExcelPackage excel, ExcelWorksheet workSheet, int numberOfDataSeries, BigFuckingListOfAllData big)
@@ -167,7 +200,7 @@ namespace Obrobka_DSC_Class
 
             for (int column = 0; column < big.allData.Count / numberOfDataSeries; column++)
             {
-                string adress1 = GetStandardExcelColumnName(1+ numberOfDataSeries*column);
+                string adress1 = GetStandardExcelColumnName(1 + numberOfDataSeries * column);
                 string adress2 = GetStandardExcelColumnName(1 + numberOfDataSeries * column + 1);
                 string dataSeries1 = "Sheet1!" + adress1 + "3:" + adress1 + big.allData[0].Count;
                 string dataSeries2 = "Sheet1!" + adress2 + "3:" + adress2 + big.allData[0].Count;
@@ -223,7 +256,7 @@ namespace Obrobka_DSC_Class
             myChart4.XAxis.Format = "# ##0";
             myChart4.PlotArea.Border.Width = 5;
             myChart4.XAxis.Title.Text = "Time [s]";
-            myChart4.YAxis.Title.Text = "DSC [mW/mg]";
+            myChart4.YAxis.Title.Text = "Integral [%]";
             myChart4.XAxis.RemoveGridlines();
             myChart4.YAxis.RemoveGridlines();
             myChart4.XAxis.MinValue = 0;
@@ -232,12 +265,12 @@ namespace Obrobka_DSC_Class
             for (int column = 0; column < big.allData.Count / numberOfDataSeries; column++)
             {
                 string adress1 = GetStandardExcelColumnName(1 + numberOfDataSeries * column);
-                string adress2 = GetStandardExcelColumnName(1 + numberOfDataSeries * column + 5);
+                string adress2 = GetStandardExcelColumnName(1 + numberOfDataSeries * column + 3);
                 string dataSeries1 = "Sheet1!" + adress1 + "3:" + adress1 + big.allData[0].Count;
                 string dataSeries2 = "Sheet1!" + adress2 + "3:" + adress2 + big.allData[0].Count;
                 var series = myChart4.Series.Add(dataSeries2, dataSeries1);
                 series.HeaderAddress = new ExcelAddress("Sheet1!" + adress1 + 1);
-           
+
             }
         }
 
@@ -245,14 +278,12 @@ namespace Obrobka_DSC_Class
         {
             int baseValue = Convert.ToInt32('A');
             int columnNumberZeroBased = columnNumberOneBased - 1;
-
             string ret = "";
 
             if (columnNumberOneBased > 26)
             {
                 ret = GetStandardExcelColumnName(columnNumberZeroBased / 26);
             }
-           // Console.WriteLine("tekst = " + (ret + Convert.ToChar(baseValue + (columnNumberZeroBased % 26))) );
             return ret + Convert.ToChar(baseValue + (columnNumberZeroBased % 26));
         }
 
@@ -300,8 +331,62 @@ namespace Obrobka_DSC_Class
                 headers += item + ";";
             }
             headers += "Integral_sum;Rp[mol dm -3 s-1];Conversion [%];";
-
             big.headers.Add(headers);
+
+            AddMaxValToBigLists(measurement, big);
+            AddTangentialToBigList(measurement, big);
+        }
+
+
+
+        private static void AddTangentialToBigList(Measurement measurement, BigFuckingListOfAllData big)
+        {
+            float timeLightOn = CalculateLightOnTime(measurement.measuredValue, measurement.timeOfMeasurement);
+            float baseline = CalculateIntegralBaseline(measurement.measuredValue);
+            List<int> firstIndex = new List<int>();
+            for (int i = 0; i < measurement.measuredValue.Count; i++)
+            {
+                if (measurement.measuredValue[i] >= baseline)
+                {
+                    firstIndex.Add(i);
+                    break;
+                }
+            }
+            for (int i = 0; i < firstIndex.Count; i++)
+            {
+                big.inductionTime.Add(measurement.timeOfMeasurement[firstIndex[i]] - timeLightOn);
+                big.tangentialConversion.Add(((measurement.conversion[firstIndex[i] + 10] - measurement.conversion[firstIndex[i]]) /
+                    (measurement.timeOfMeasurement[firstIndex[i] + 10] - measurement.timeOfMeasurement[firstIndex[i]])).ToString());
+                big.tangentialDSC.Add(((measurement.measuredValue[firstIndex[i] + 10] - measurement.measuredValue[firstIndex[i]]) /
+                    (measurement.timeOfMeasurement[firstIndex[i] + 10] - measurement.timeOfMeasurement[firstIndex[i]])).ToString());
+                big.tangentialRp.Add(((measurement.RpValues[firstIndex[i] + 10] - measurement.RpValues[firstIndex[i]]) /
+                    (measurement.timeOfMeasurement[firstIndex[i] + 10] - measurement.timeOfMeasurement[firstIndex[i]])).ToString());
+            }
+        }
+
+        private static float CalculateLightOnTime(List<float> measuredValue, List<float> time)
+        {
+
+            for (int i = 0; i < measuredValue.Count; i++)
+            {
+                if (measuredValue[i] < (measuredValue[i + 10] - 0.05))
+                {
+                    //  Console.WriteLine("measuredVal [i] = {0}, [i+10] = {1}", measuredValue[i], measuredValue[i + 10] + 0.05);
+                    //Console.WriteLine(measuredValue[i] < (measuredValue[i + 10] - 0.05) ? true : false);
+                    //Console.WriteLine("time = {0}, i = {1}", time[i], i);
+                    return time[i];
+                }
+            }
+            return -1;
+        }
+
+        private static void AddMaxValToBigLists(Measurement measurement, BigFuckingListOfAllData big)
+        {
+            big.maxDSC.Add(measurement.measuredValue.Max());
+            big.maxDSCTime.Add(measurement.timeOfMeasurement[measurement.measuredValue.IndexOf(measurement.measuredValue.Max())]);
+            big.maxConversion.Add(measurement.conversion.Max());
+            big.maxRp.Add(measurement.RpValues.Max());
+            big.maxRpTime.Add(measurement.timeOfMeasurement[measurement.RpValues.IndexOf(measurement.RpValues.Max())]);
         }
 
         private static void CalculateConversion(Measurement measurement, List<float> heatOfPolymerization, uint fileNumerator)
@@ -337,7 +422,7 @@ namespace Obrobka_DSC_Class
         {
             float totalSum = measurement.integralOfMeasuredValue.Sum();
             for (int i = 0; i < measurement.integralOfMeasuredValue.Count; i++)
-            { 
+            {
                 measurement.integralSum.Add(100 * (measurement.integralOfMeasuredValue.Take(i).Sum() / totalSum));
             }
         }
@@ -429,10 +514,12 @@ namespace Obrobka_DSC_Class
 
         private static float CalculateIntegralBaseline(List<float> measuredValue)
         {
-            for (int i = measuredValue.Count / 2; i < measuredValue.Count; i++)
+            for (int i = 1000; i < measuredValue.Count; i++)
             {
-                if (measuredValue[i] <= measuredValue[i - 10] - 0.12)
+                if ((measuredValue[i] <= measuredValue[i - 10] - 0.12) ||
+                    (measuredValue[i] < measuredValue[i + 50]) && measuredValue[i] < measuredValue[i - 50])
                 {
+                    //  Console.WriteLine(measuredValue[i]);
                     return measuredValue[i - 10];
                 }
             }
@@ -538,15 +625,57 @@ namespace Obrobka_DSC_Class
 
         }
 
-        private static void ShowTextFilesInMainFolder(FileInfo[] fileInfos, List<float> heat)
+        private static void ShowTextFilesInMainFolder(FileInfo[] fileInfos, List<float> heat, List<float> heatOfFunctionalGroup)
         {
             Console.ForegroundColor = ConsoleColor.Blue;
-            Console.WriteLine("Znaleziono Pliki: ");
+            Console.WriteLine("Detected files: ");
+            float heat1ToParse = 0.0f;
+            float heat2ToParse = 0.0f;
             foreach (var file in fileInfos)
             {
+                Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine(file.Name);
+            loop1:
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.Write("Enter heat of polymerization in J/g eg. 500 = ");
-                heat.Add(float.Parse(Console.ReadLine()));
+                Console.ForegroundColor = ConsoleColor.Green;
+            
+                string s1 = Console.ReadLine();
+                Console.ResetColor();
+                s1 = s1.Replace(',', '.');
+                
+                if (float.TryParse(s1, out heat1ToParse))
+                {
+                    heat.Add(heat1ToParse);
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("invalid value");
+                    Console.ResetColor();
+                    goto loop1;
+
+                }
+                loop2:
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("Enter heat of polymerization of 1 functional group eg epox 96700 = ");
+                Console.ForegroundColor = ConsoleColor.Green;
+                s1 = Console.ReadLine();
+                Console.ResetColor();
+                s1 = s1.Replace(',', '.');
+                if (float.TryParse(s1, out heat2ToParse))
+                {
+                    heatOfFunctionalGroup.Add(heat2ToParse);
+                    // Console.WriteLine("heat 2 to parse" + heat2ToParse);
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("invalid value");
+                    Console.ResetColor();
+                    goto loop2;
+                }
+
             }
             Console.ResetColor();
         }
@@ -597,7 +726,6 @@ namespace Obrobka_DSC_Class
         public SupportingValue(uint countError1, uint countError2, uint fileNumerator, float integralBaseLine,
             int indexOfTimeRow, int signalIndex, int secondNumerator, int signalIntegrationEndIndex, bool badFile, int longestList)
         {
-
             this.countError1 = countError1;
             this.countError2 = countError2;
             this.fileNumerator = fileNumerator;
@@ -608,9 +736,7 @@ namespace Obrobka_DSC_Class
             this.secondNumerator = secondNumerator;
             this.signalIntegrationEndIndex = signalIntegrationEndIndex;
             this.longestList = longestList;
-
         }
-
 
         public float integralBaseLine;
         public int indexOfTimeRow;
@@ -618,48 +744,12 @@ namespace Obrobka_DSC_Class
         public int secondNumerator;
         public int signalIntegrationEndIndex;
         public int longestList;
-
         public uint countError1;
         public uint countError2;
         public uint fileNumerator;
         public bool badFile;
-
     }
 
-    class TableOfValues
-    {
-        public List<string> headersOfTable { get; set; }
-        public List<float> valuesToDisplay1 { get; set; }
-        public List<float> valuesToDisplay2 { get; set; }
-        public List<float> valuesToDisplay3 { get; set; }
-        public List<float> valuesToDisplay4 { get; set; }
-        public List<float> valuesToDisplay5 { get; set; }
-
-        public TableOfValues()
-        {
-            headersOfTable = new List<string>();
-            valuesToDisplay1 = new List<float>();
-            valuesToDisplay2 = new List<float>();
-            valuesToDisplay3 = new List<float>();
-            valuesToDisplay4 = new List<float>();
-            valuesToDisplay5 = new List<float>();
-        }
-    }
-    class TangentialKineticCurves
-    {
-        public List<float> tangentialToMeasuredValue { get; set; }
-        public List<float> tangentTointegal { get; set; }
-        public List<float> tangentToSomeOtherValue { get; set; }
-
-        public TangentialKineticCurves()
-        {
-            tangentialToMeasuredValue = new List<float>();
-            tangentTointegal = new List<float>();
-            tangentToSomeOtherValue = new List<float>();
-        }
-
-
-    }
 
     class Measurement
     {
@@ -670,7 +760,6 @@ namespace Obrobka_DSC_Class
         public List<float> conversion { get; set; }
         public List<float> integralSum { get; set; }
         public List<float> RpValues { get; set; }
-
 
         public Measurement()
         {
@@ -683,17 +772,37 @@ namespace Obrobka_DSC_Class
             RpValues = new List<float>();
         }
     }
+
     class BigFuckingListOfAllData
     {
         public List<List<float>> allData;
         public List<string> headers;
         public List<string> fileNames;
         public int maxListLength;
+        public List<float> maxDSC { get; set; }
+        public List<float> maxDSCTime { get; set; }
+        public List<float> maxRp { get; set; }
+        public List<float> maxRpTime { get; set; }
+        public List<float> maxConversion { get; set; }
+        public List<string> tangentialDSC { get; set; }
+        public List<string> tangentialRp { get; set; }
+        public List<string> tangentialConversion { get; set; }
+        public List<float> inductionTime { get; set; }
+
         public BigFuckingListOfAllData()
         {
             allData = new List<List<float>>();
             headers = new List<string>();
             fileNames = new List<string>();
+            maxDSC = new List<float>();
+            maxDSCTime = new List<float>();
+            maxConversion = new List<float>();
+            maxRp = new List<float>();
+            maxRpTime = new List<float>();
+            tangentialConversion = new List<string>();
+            tangentialDSC = new List<string>();
+            tangentialRp = new List<string>();
+            inductionTime = new List<float>();
         }
     }
 
