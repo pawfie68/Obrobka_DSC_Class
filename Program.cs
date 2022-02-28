@@ -102,18 +102,15 @@ namespace Obrobka_DSC_Class
             }
             Console.WriteLine();
 
-            if (InfotionAboutFiles.fileInfos.Length != supportingValue.fileNumerator)
-            {
+
                 SaveBigFuckingData(big, path);
                 GenerateExcelFile(big, path, supportingValue);
-            }
-            else
+            if(supportingValue.fileNumerator == 0)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("No proper files found!");
                 Console.ResetColor();
             }
-
         }
 
 
