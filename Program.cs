@@ -16,15 +16,21 @@ namespace Obrobka_DSC_Class
         static char separator = ';';
         static void Main(string[] args)
         {
+            Console.WindowWidth = 150;
+              DisplayInfo();
+           // Console.WriteLine("Current WindowWidth: {0}",
+           //                     Console.WindowWidth);
         loopX:
             Console.WriteLine("Paste directory here:");
             string pathFromUser = Console.ReadLine();
             try
             {
                 InfotionAboutFiles infotionAboutFiles = new InfotionAboutFiles(pathFromUser);
+                Console.Clear();
             }
-            catch (Exception e)
+            catch (DirectoryNotFoundException e)
             {
+
                 Console.WriteLine("Path not correct");
                 goto loopX;
             }
@@ -45,9 +51,8 @@ namespace Obrobka_DSC_Class
                 Console.WriteLine("Press any key to finish");
                 Console.ResetColor();
                 Console.ReadKey();
-             
             }
-            else
+
             else
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -101,7 +106,7 @@ namespace Obrobka_DSC_Class
                     Measurement measurement = new Measurement();
 
                     SplitLinesIntoSingleValues(lines, measurement, supportingValue);
-                    if(measurement.measuredValue.Count != 0)
+                    if (measurement.measuredValue.Count != 0)
                     {
                         CalculateIntegral(measurement, supportingValue);
                         CalculateIntegralSum(measurement);
@@ -116,7 +121,7 @@ namespace Obrobka_DSC_Class
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("File {0} doesnt countain Time or DSC data!", file.Name);
                         Console.ResetColor();
-                    }   
+                    }
                 }
             }
             Console.WriteLine();
@@ -588,7 +593,7 @@ namespace Obrobka_DSC_Class
             {
                 i++;
                 temporaryValues = (line.Split(separator).ToList());
-                if(line.Contains("Time") && line.Contains("DSC"))
+                if (line.Contains("Time") && line.Contains("DSC"))
                 {
                     isFileOK = true;
                 }
@@ -658,7 +663,7 @@ namespace Obrobka_DSC_Class
                     }
                 }
             }
-            if(isFileOK)
+            if (isFileOK)
             {
                 if (measurement.timeOfMeasurement.Count < supportingValue.longestFile)
                 {
@@ -782,116 +787,147 @@ namespace Obrobka_DSC_Class
 
         }
 
-    }
-
-
-
-    class InfotionAboutFiles
-    {
-        public static DirectoryInfo directoryInfo;
-        public static FileInfo[] fileInfos;
-        public static string pathMain;
-        public static string path;
-
-        public InfotionAboutFiles(string path1)
+        public static void DisplayInfo()
         {
-            directoryInfo = new DirectoryInfo(path1);
-            fileInfos = directoryInfo.GetFiles("*.txt");
-            pathMain = path1;
-            path = path1 /*Directory.GetCurrentDirectory()*/ + "\\" + DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString()
-               + DateTime.Now.Day.ToString() + "_obrobione" + "_" + DateTime.Now.Hour.ToString() + "h" + DateTime.Now.Minute.ToString() + "m" + DateTime.Now.Second.ToString();
-        }
+        Console.WriteLine(@" ______   _______  _______       _______  _______  _______             _______     ______     ______              _______  _______ ");
+        Console.WriteLine(@"(  __  \ (  ____ \(  ____ \     (  ___  )(  ____ )(  ____ )  |\     /|/ ___   )   / ___  \   (  ___ \ |\     /|  (  ____ )(  ____ \ ");
+        Console.WriteLine(@"| (  \  )| (    \/| (    \/     | (   ) || (    )|| (    )|  | )   ( |\/   )  |   \/   \  \  | (   ) )( \   / )  | (    )|| (    \/");
+        Console.WriteLine(@"| |   ) || (_____ | |           | (___) || (____)|| (____)|  | |   | |    /   )      ___) /  | (__/ /  \ (_) /   | (____)|| (__    ");
+        Console.WriteLine(@"| |   | |(_____  )| |           |  ___  ||  _____)|  _____)  ( (   ) )  _/   /      (___ (   |  __ (    \   /    |  _____)|  __)   ");
+        Console.WriteLine(@"| |   ) |      ) || |           | (   ) || (      | (         \ \_/ /  /   _/           ) \  | (  \ \    ) (     | (      | (      ");
+        Console.WriteLine(@"| (__/  )/\____) || (____/\     | )   ( || )      | )          \   /  (   (__/\ _ /\___/  /  | )___) )   | |     | )      | )      ");
+        Console.WriteLine(@"(______/ \_______)(_______/_____|/     \||/       |/            \_/   \_______/(_)\______/   |/ \___/    \_/     |/       |/       ");
+            Console.WriteLine("\n");
+            List<string> a = new List<string>()
+            {"/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////",
+            "/////////////////////////   Application designed for conversion of  multiple *.txt data files gathered  /////////////////////////",
+            "/////////////////////////////////  from photo-DSC measurement using Netszch Phoenix F1 204  /////////////////////////////////////",
+            "/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////",
+            "///////////////////////////// File must be at least 1001 lines long and countain over 10k charcters /////////////////////////////",
+            "////////////////////////////////////////// must also countain DSC and Time data /////////////////////////////////////////////////",
+            "//////////////////////////////////////////////// Decimal separator -> '.' ///////////////////////////////////////////////////////",
+            "///////////////////////////////////////////////// Column separator is ';' ///////////////////////////////////////////////////////",
+            "/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////",
+            "//////////////////////////// Not For commercial use! Developed on EPPlus 5.0 free licence framework /////////////////////////////",};
+            //////////
+            foreach (var item in a)
+            {
+                Console.WriteLine(item);
+            }
+            Console.WriteLine("\n");
 
     }
 
+}
 
-    struct SupportingValue
+
+
+class InfotionAboutFiles
+{
+    public static DirectoryInfo directoryInfo;
+    public static FileInfo[] fileInfos;
+    public static string pathMain;
+    public static string path;
+
+    public InfotionAboutFiles(string path1)
     {
-
-        public SupportingValue(uint countError1, uint countError2, uint fileNumerator, float integralBaseLine,
-            int indexOfTimeRow, int signalIndex, int secondNumerator, int signalIntegrationEndIndex, bool badFile, int longestList, int longestFile)
-        {
-            this.longestFile = longestFile;
-            this.countError1 = countError1;
-            this.countError2 = countError2;
-            this.fileNumerator = fileNumerator;
-            this.badFile = badFile;
-            this.integralBaseLine = integralBaseLine;
-            this.indexOfTimeRow = indexOfTimeRow;
-            this.signalIndex = signalIndex;
-            this.secondNumerator = secondNumerator;
-            this.signalIntegrationEndIndex = signalIntegrationEndIndex;
-            this.longestList = longestList;
-        }
-
-        public int longestFile;
-        public float integralBaseLine;
-        public int indexOfTimeRow;
-        public int signalIndex;
-        public int secondNumerator;
-        public int signalIntegrationEndIndex;
-        public int longestList;
-        public uint countError1;
-        public uint countError2;
-        public uint fileNumerator;
-        public bool badFile;
+        directoryInfo = new DirectoryInfo(path1);
+        fileInfos = directoryInfo.GetFiles("*.txt");
+        pathMain = path1;
+        path = path1 /*Directory.GetCurrentDirectory()*/ + "\\" + DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString()
+           + DateTime.Now.Day.ToString() + "_obrobione" + "_" + DateTime.Now.Hour.ToString() + "h" + DateTime.Now.Minute.ToString() + "m" + DateTime.Now.Second.ToString();
     }
 
+}
 
-    class Measurement
+
+struct SupportingValue
+{
+
+    public SupportingValue(uint countError1, uint countError2, uint fileNumerator, float integralBaseLine,
+        int indexOfTimeRow, int signalIndex, int secondNumerator, int signalIntegrationEndIndex, bool badFile, int longestList, int longestFile)
     {
-        public List<string> headersOfTable { get; set; }
-        public List<float> timeOfMeasurement { get; set; }
-        public List<float> measuredValue { get; set; }
-        public List<float> integralOfMeasuredValue { get; set; }
-        public List<float> conversion { get; set; }
-        public List<float> integralSum { get; set; }
-        public List<float> RpValues { get; set; }
-
-        public Measurement()
-        {
-            headersOfTable = new List<string>();
-            timeOfMeasurement = new List<float>();
-            measuredValue = new List<float>();
-            integralOfMeasuredValue = new List<float>();
-            conversion = new List<float>();
-            integralSum = new List<float>();
-            RpValues = new List<float>();
-        }
+        this.longestFile = longestFile;
+        this.countError1 = countError1;
+        this.countError2 = countError2;
+        this.fileNumerator = fileNumerator;
+        this.badFile = badFile;
+        this.integralBaseLine = integralBaseLine;
+        this.indexOfTimeRow = indexOfTimeRow;
+        this.signalIndex = signalIndex;
+        this.secondNumerator = secondNumerator;
+        this.signalIntegrationEndIndex = signalIntegrationEndIndex;
+        this.longestList = longestList;
     }
 
-    class BigFuckingListOfAllData
+    public int longestFile;
+    public float integralBaseLine;
+    public int indexOfTimeRow;
+    public int signalIndex;
+    public int secondNumerator;
+    public int signalIntegrationEndIndex;
+    public int longestList;
+    public uint countError1;
+    public uint countError2;
+    public uint fileNumerator;
+    public bool badFile;
+}
+
+
+class Measurement
+{
+    public List<string> headersOfTable { get; set; }
+    public List<float> timeOfMeasurement { get; set; }
+    public List<float> measuredValue { get; set; }
+    public List<float> integralOfMeasuredValue { get; set; }
+    public List<float> conversion { get; set; }
+    public List<float> integralSum { get; set; }
+    public List<float> RpValues { get; set; }
+
+    public Measurement()
     {
-        public List<List<float>> allData;
-        public List<string> headers;
-        public List<string> fileNames;
-        public int maxListLength;
-        public List<float> maxDSC { get; set; }
-        public List<float> maxDSCTime { get; set; }
-        public List<float> maxRp { get; set; }
-        public List<float> maxRpTime { get; set; }
-        public List<float> maxConversion { get; set; }
-        public List<string> tangentialDSC { get; set; }
-        public List<string> tangentialRp { get; set; }
-        public List<string> tangentialConversion { get; set; }
-        public List<float> inductionTime { get; set; }
-
-        public BigFuckingListOfAllData()
-        {
-            allData = new List<List<float>>();
-            headers = new List<string>();
-            fileNames = new List<string>();
-            maxDSC = new List<float>();
-            maxDSCTime = new List<float>();
-            maxConversion = new List<float>();
-            maxRp = new List<float>();
-            maxRpTime = new List<float>();
-            tangentialConversion = new List<string>();
-            tangentialDSC = new List<string>();
-            tangentialRp = new List<string>();
-            inductionTime = new List<float>();
-        }
+        headersOfTable = new List<string>();
+        timeOfMeasurement = new List<float>();
+        measuredValue = new List<float>();
+        integralOfMeasuredValue = new List<float>();
+        conversion = new List<float>();
+        integralSum = new List<float>();
+        RpValues = new List<float>();
     }
+}
+
+class BigFuckingListOfAllData
+{
+    public List<List<float>> allData;
+    public List<string> headers;
+    public List<string> fileNames;
+    public int maxListLength;
+    public List<float> maxDSC { get; set; }
+    public List<float> maxDSCTime { get; set; }
+    public List<float> maxRp { get; set; }
+    public List<float> maxRpTime { get; set; }
+    public List<float> maxConversion { get; set; }
+    public List<string> tangentialDSC { get; set; }
+    public List<string> tangentialRp { get; set; }
+    public List<string> tangentialConversion { get; set; }
+    public List<float> inductionTime { get; set; }
+
+    public BigFuckingListOfAllData()
+    {
+        allData = new List<List<float>>();
+        headers = new List<string>();
+        fileNames = new List<string>();
+        maxDSC = new List<float>();
+        maxDSCTime = new List<float>();
+        maxConversion = new List<float>();
+        maxRp = new List<float>();
+        maxRpTime = new List<float>();
+        tangentialConversion = new List<string>();
+        tangentialDSC = new List<string>();
+        tangentialRp = new List<string>();
+        inductionTime = new List<float>();
+    }
+}
 
 
 }
