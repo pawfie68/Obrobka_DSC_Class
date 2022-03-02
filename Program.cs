@@ -67,9 +67,9 @@ namespace Obrobka_DSC_Class
 
         private static void ConvertFiles(FileInfo[] fileInfos, string path, List<float> heatOfPolymerization, List<float> heatOfFunctionalGroup)
         {
-            SupportingValue supportingValue = new SupportingValue(0, 0, 0, 0, 0, 0, 0, 0, false, 0);
+            SupportingValue supportingValue = new SupportingValue(0, 0, 0, 0, 0, 0, 0, 0, false, 0, 0);
             BigFuckingListOfAllData big = new BigFuckingListOfAllData();
-
+            supportingValue.longestFile = DetectLongestFile(fileInfos, supportingValue);
 
             foreach (var file in InfotionAboutFiles.fileInfos)
             {
@@ -94,7 +94,6 @@ namespace Obrobka_DSC_Class
                     CalculateConversion(measurement, heatOfPolymerization, supportingValue.fileNumerator);
                     SaveFileWithCalculatedValues(measurement, file, path);
                     AddDataToBigFuckingData(big, measurement, file, heatOfPolymerization);
-
                     supportingValue.fileNumerator++;
                 }
 
@@ -103,9 +102,9 @@ namespace Obrobka_DSC_Class
             Console.WriteLine();
 
 
-                SaveBigFuckingData(big, path);
-                GenerateExcelFile(big, path, supportingValue);
-            if(supportingValue.fileNumerator == 0)
+            SaveBigFuckingData(big, path);
+            GenerateExcelFile(big, path, supportingValue);
+            if (supportingValue.fileNumerator == 0)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("No proper files found!");
@@ -113,7 +112,17 @@ namespace Obrobka_DSC_Class
             }
         }
 
-
+        private static int DetectLongestFile(FileInfo[] fileInfos, SupportingValue supportingValue)
+        {
+            foreach (var file in InfotionAboutFiles.fileInfos)
+            {
+                if (supportingValue.longestFile < FileContentToList(file).Count)
+                {
+                    supportingValue.longestFile = FileContentToList(file).Count;
+                }
+            }
+            return supportingValue.longestFile + 100;
+        }
 
         private static void GenerateExcelFile(BigFuckingListOfAllData big, string path, SupportingValue supportingValue)
         {
@@ -396,9 +405,6 @@ namespace Obrobka_DSC_Class
             {
                 if (measuredValue[i] < (measuredValue[i + 10] - 0.05))
                 {
-                    //  Console.WriteLine("measuredVal [i] = {0}, [i+10] = {1}", measuredValue[i], measuredValue[i + 10] + 0.05);
-                    //Console.WriteLine(measuredValue[i] < (measuredValue[i + 10] - 0.05) ? true : false);
-                    //Console.WriteLine("time = {0}, i = {1}", time[i], i);
                     return time[i];
                 }
             }
@@ -493,7 +499,6 @@ namespace Obrobka_DSC_Class
                 }
             }
             streamWriter.Close();
-
         }
 
 
@@ -519,22 +524,18 @@ namespace Obrobka_DSC_Class
                     if (fValueToSend >= 0)
                     {
                         measurement.integralOfMeasuredValue.Add(fValueToSend);
-
                     }
                     else
                     {
                         measurement.integralOfMeasuredValue.Add(0);
-
                     }
                 }
-                //Console.WriteLine(measurement.integralOfMeasuredValue.Sum());
             }
             else
             {
                 Console.WriteLine("Cannot calculate integral of vectors with different sizes!");
             }
             measurement.integralOfMeasuredValue.Add(0);
-            // measurement.integralOfMeasuredValue.Add(0);
         }
 
         private static float CalculateIntegralBaseline(List<float> measuredValue)
@@ -544,7 +545,6 @@ namespace Obrobka_DSC_Class
                 if ((measuredValue[i] <= measuredValue[i - 10] - 0.12) ||
                     (measuredValue[i] < measuredValue[i + 50]) && measuredValue[i] < measuredValue[i - 50])
                 {
-                    //  Console.WriteLine(measuredValue[i]);
                     return measuredValue[i - 10];
                 }
             }
@@ -557,7 +557,6 @@ namespace Obrobka_DSC_Class
             int dscIndex = -1;
             int timeIndex = -1;
             int dataBeginingIndex = 0;
-            // List<List<string>> plik = new List<List<string>>();
             List<string> temporaryValues;
             int i = 0;
             bool istimeInMinutes = false;
@@ -628,6 +627,14 @@ namespace Obrobka_DSC_Class
                             Console.WriteLine("Blad konwersji sygnalu dsc");
                         }
                     }
+                }
+            }
+            if (measurement.timeOfMeasurement.Count < supportingValue.longestFile)
+            {
+                for (int x = 0; x < (supportingValue.longestFile - measurement.timeOfMeasurement.Count); x++)
+                {
+                    measurement.timeOfMeasurement.Add(0);
+                    measurement.measuredValue.Add(0);
                 }
             }
             return measurement;
@@ -762,8 +769,9 @@ namespace Obrobka_DSC_Class
     {
 
         public SupportingValue(uint countError1, uint countError2, uint fileNumerator, float integralBaseLine,
-            int indexOfTimeRow, int signalIndex, int secondNumerator, int signalIntegrationEndIndex, bool badFile, int longestList)
+            int indexOfTimeRow, int signalIndex, int secondNumerator, int signalIntegrationEndIndex, bool badFile, int longestList, int longestFile)
         {
+            this.longestFile = longestFile;
             this.countError1 = countError1;
             this.countError2 = countError2;
             this.fileNumerator = fileNumerator;
@@ -776,6 +784,7 @@ namespace Obrobka_DSC_Class
             this.longestList = longestList;
         }
 
+        public int longestFile;
         public float integralBaseLine;
         public int indexOfTimeRow;
         public int signalIndex;
