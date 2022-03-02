@@ -633,7 +633,7 @@ namespace Obrobka_DSC_Class
             {
                 for (int x = 0; x < (supportingValue.longestFile - measurement.timeOfMeasurement.Count); x++)
                 {
-                    measurement.timeOfMeasurement.Add(0);
+                    measurement.timeOfMeasurement.Add((float)(measurement.timeOfMeasurement[measurement.timeOfMeasurement.Count-1]+0.01));
                     measurement.measuredValue.Add(0);
                 }
             }
