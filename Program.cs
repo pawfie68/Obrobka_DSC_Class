@@ -16,8 +16,19 @@ namespace Obrobka_DSC_Class
         static char separator = ';';
         static void Main(string[] args)
         {
+        loopX:
             Console.WriteLine("Paste directory here:");
-            InfotionAboutFiles infotionAboutFiles = new InfotionAboutFiles(Console.ReadLine());
+            string pathFromUser = Console.ReadLine();
+            try
+            {
+                InfotionAboutFiles infotionAboutFiles = new InfotionAboutFiles(pathFromUser);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Path not correct");
+                goto loopX;
+            }
+
             Console.WriteLine(InfotionAboutFiles.path);
             DecimalSeparatorToDot();
             PrintTableOfHeats();
@@ -32,9 +43,11 @@ namespace Obrobka_DSC_Class
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("All files succesfully saved to: " + InfotionAboutFiles.path);
                 Console.WriteLine("Press any key to finish");
-                Console.ReadKey();
                 Console.ResetColor();
+                Console.ReadKey();
+             
             }
+            else
             else
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -42,7 +55,7 @@ namespace Obrobka_DSC_Class
                 Console.ResetColor();
             }
 
-
+            Console.ReadKey();
 
         }
 
@@ -88,22 +101,32 @@ namespace Obrobka_DSC_Class
                     Measurement measurement = new Measurement();
 
                     SplitLinesIntoSingleValues(lines, measurement, supportingValue);
-                    CalculateIntegral(measurement, supportingValue);
-                    CalculateIntegralSum(measurement);
-                    CalculateRpValue(measurement, heatOfFunctionalGroup, supportingValue.fileNumerator);
-                    CalculateConversion(measurement, heatOfPolymerization, supportingValue.fileNumerator);
-                    SaveFileWithCalculatedValues(measurement, file, path);
-                    AddDataToBigFuckingData(big, measurement, file, heatOfPolymerization);
-                    supportingValue.fileNumerator++;
+                    if(measurement.measuredValue.Count != 0)
+                    {
+                        CalculateIntegral(measurement, supportingValue);
+                        CalculateIntegralSum(measurement);
+                        CalculateRpValue(measurement, heatOfFunctionalGroup, supportingValue.fileNumerator);
+                        CalculateConversion(measurement, heatOfPolymerization, supportingValue.fileNumerator);
+                        SaveFileWithCalculatedValues(measurement, file, path);
+                        AddDataToBigFuckingData(big, measurement, file, heatOfPolymerization);
+                        supportingValue.fileNumerator++;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("File {0} doesnt countain Time or DSC data!", file.Name);
+                        Console.ResetColor();
+                    }   
                 }
-
-                Console.Write('▒');
             }
             Console.WriteLine();
 
+            if (big.allData.Count != 0)
+            {
+                SaveBigFuckingData(big, path);
+                GenerateExcelFile(big, path, supportingValue);
+            }
 
-            SaveBigFuckingData(big, path);
-            GenerateExcelFile(big, path, supportingValue);
             if (supportingValue.fileNumerator == 0)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -560,10 +583,16 @@ namespace Obrobka_DSC_Class
             List<string> temporaryValues;
             int i = 0;
             bool istimeInMinutes = false;
+            bool isFileOK = false;
             foreach (var line in lines)
             {
                 i++;
                 temporaryValues = (line.Split(separator).ToList());
+                if(line.Contains("Time") && line.Contains("DSC"))
+                {
+                    isFileOK = true;
+                }
+
                 float fValueToParseOn = 0.0f;
                 if (temporaryValues.Count > supportingValue.longestList)
                 {
@@ -629,13 +658,21 @@ namespace Obrobka_DSC_Class
                     }
                 }
             }
-            if (measurement.timeOfMeasurement.Count < supportingValue.longestFile)
+            if(isFileOK)
             {
-                for (int x = 0; x < (supportingValue.longestFile - measurement.timeOfMeasurement.Count); x++)
+                if (measurement.timeOfMeasurement.Count < supportingValue.longestFile)
                 {
-                    measurement.timeOfMeasurement.Add((float)(measurement.timeOfMeasurement[measurement.timeOfMeasurement.Count-1]+0.01));
-                    measurement.measuredValue.Add(0);
+                    for (int x = 0; x < (supportingValue.longestFile - measurement.timeOfMeasurement.Count); x++)
+                    {
+                        measurement.timeOfMeasurement.Add((float)(measurement.timeOfMeasurement[measurement.timeOfMeasurement.Count - 1] + 0.01));
+                        measurement.measuredValue.Add(0);
+                    }
                 }
+            }
+            else
+            {
+                measurement.timeOfMeasurement.Clear();
+                measurement.measuredValue.Clear();
             }
             return measurement;
         }
@@ -661,6 +698,7 @@ namespace Obrobka_DSC_Class
         {
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("Detected files: ");
+            Console.ResetColor();
             foreach (var file in fileInfos)
             {
                 bool badfile = false;
@@ -674,12 +712,14 @@ namespace Obrobka_DSC_Class
                 {
                     Console.ForegroundColor = ConsoleColor.Blue;
                     Console.WriteLine(file.Name);
+                    Console.ResetColor();
                 loop1:
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("Enter heat of polymerization in J/g eg. 500 = ");
+                    Console.ResetColor();
                     Console.ForegroundColor = ConsoleColor.Green;
-
                     string s1 = Console.ReadLine();
+                    Console.ResetColor();
                     Console.ResetColor();
                     s1 = s1.Replace(',', '.');
 
