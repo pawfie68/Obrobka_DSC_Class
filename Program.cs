@@ -17,9 +17,9 @@ namespace Obrobka_DSC_Class
         static void Main(string[] args)
         {
             Console.WindowWidth = 150;
-              DisplayInfo();
-           // Console.WriteLine("Current WindowWidth: {0}",
-           //                     Console.WindowWidth);
+            DisplayInfo();
+        // Console.WriteLine("Current WindowWidth: {0}",
+        //                     Console.WindowWidth);
         loopX:
             Console.WriteLine("Paste directory here:");
             string pathFromUser = Console.ReadLine();
@@ -568,14 +568,27 @@ namespace Obrobka_DSC_Class
 
         private static float CalculateIntegralBaseline(List<float> measuredValue)
         {
-            for (int i = 1000; i < measuredValue.Count; i++)
+            bool noBaselineDetected = false;
+            if (measuredValue.Count > 1000)
             {
-                if ((measuredValue[i] <= measuredValue[i - 10] - 0.12) ||
-                    (measuredValue[i] < measuredValue[i + 50]) && measuredValue[i] < measuredValue[i - 50])
+                for (int i = 1000; i < measuredValue.Count-50; i++)
                 {
-                    return measuredValue[i - 10];
+                    if ((measuredValue[i] <= measuredValue[i - 10] - 0.12) ||
+                        (measuredValue[i] < measuredValue[i + 50]) && measuredValue[i] < measuredValue[i - 50])
+                    {
+                        return measuredValue[i - 10];
+                    }
+                    else
+                    {
+                        noBaselineDetected = true;
+                    }
                 }
             }
+            if(noBaselineDetected = true)
+            {
+                return measuredValue[measuredValue.Count - 1];
+            }
+
             return -1;
         }
 
@@ -789,14 +802,14 @@ namespace Obrobka_DSC_Class
 
         public static void DisplayInfo()
         {
-        Console.WriteLine(@" ______   _______  _______       _______  _______  _______             _______     ______     ______              _______  _______ ");
-        Console.WriteLine(@"(  __  \ (  ____ \(  ____ \     (  ___  )(  ____ )(  ____ )  |\     /|/ ___   )   / ___  \   (  ___ \ |\     /|  (  ____ )(  ____ \ ");
-        Console.WriteLine(@"| (  \  )| (    \/| (    \/     | (   ) || (    )|| (    )|  | )   ( |\/   )  |   \/   \  \  | (   ) )( \   / )  | (    )|| (    \/");
-        Console.WriteLine(@"| |   ) || (_____ | |           | (___) || (____)|| (____)|  | |   | |    /   )      ___) /  | (__/ /  \ (_) /   | (____)|| (__    ");
-        Console.WriteLine(@"| |   | |(_____  )| |           |  ___  ||  _____)|  _____)  ( (   ) )  _/   /      (___ (   |  __ (    \   /    |  _____)|  __)   ");
-        Console.WriteLine(@"| |   ) |      ) || |           | (   ) || (      | (         \ \_/ /  /   _/           ) \  | (  \ \    ) (     | (      | (      ");
-        Console.WriteLine(@"| (__/  )/\____) || (____/\     | )   ( || )      | )          \   /  (   (__/\ _ /\___/  /  | )___) )   | |     | )      | )      ");
-        Console.WriteLine(@"(______/ \_______)(_______/_____|/     \||/       |/            \_/   \_______/(_)\______/   |/ \___/    \_/     |/       |/       ");
+            Console.WriteLine(@" ______   _______  _______       _______  _______  _______             _______     ______     ______              _______  _______ ");
+            Console.WriteLine(@"(  __  \ (  ____ \(  ____ \     (  ___  )(  ____ )(  ____ )  |\     /|/ ___   )   / ___  \   (  ___ \ |\     /|  (  ____ )(  ____ \ ");
+            Console.WriteLine(@"| (  \  )| (    \/| (    \/     | (   ) || (    )|| (    )|  | )   ( |\/   )  |   \/   \  \  | (   ) )( \   / )  | (    )|| (    \/");
+            Console.WriteLine(@"| |   ) || (_____ | |           | (___) || (____)|| (____)|  | |   | |    /   )      ___) /  | (__/ /  \ (_) /   | (____)|| (__    ");
+            Console.WriteLine(@"| |   | |(_____  )| |           |  ___  ||  _____)|  _____)  ( (   ) )  _/   /      (___ (   |  __ (    \   /    |  _____)|  __)   ");
+            Console.WriteLine(@"| |   ) |      ) || |           | (   ) || (      | (         \ \_/ /  /   _/           ) \  | (  \ \    ) (     | (      | (      ");
+            Console.WriteLine(@"| (__/  )/\____) || (____/\     | )   ( || )      | )          \   /  (   (__/\ _ /\___/  /  | )___) )   | |     | )      | )      ");
+            Console.WriteLine(@"(______/ \_______)(_______/_____|/     \||/       |/            \_/   \_______/(_)\______/   |/ \___/    \_/     |/       |/       ");
             Console.WriteLine("\n");
             List<string> a = new List<string>()
             {"/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////",
@@ -816,118 +829,118 @@ namespace Obrobka_DSC_Class
             }
             Console.WriteLine("\n");
 
+        }
+
     }
 
-}
 
 
-
-class InfotionAboutFiles
-{
-    public static DirectoryInfo directoryInfo;
-    public static FileInfo[] fileInfos;
-    public static string pathMain;
-    public static string path;
-
-    public InfotionAboutFiles(string path1)
+    class InfotionAboutFiles
     {
-        directoryInfo = new DirectoryInfo(path1);
-        fileInfos = directoryInfo.GetFiles("*.txt");
-        pathMain = path1;
-        path = path1 /*Directory.GetCurrentDirectory()*/ + "\\" + DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString()
-           + DateTime.Now.Day.ToString() + "_obrobione" + "_" + DateTime.Now.Hour.ToString() + "h" + DateTime.Now.Minute.ToString() + "m" + DateTime.Now.Second.ToString();
+        public static DirectoryInfo directoryInfo;
+        public static FileInfo[] fileInfos;
+        public static string pathMain;
+        public static string path;
+
+        public InfotionAboutFiles(string path1)
+        {
+            directoryInfo = new DirectoryInfo(path1);
+            fileInfos = directoryInfo.GetFiles("*.txt");
+            pathMain = path1;
+            path = path1 /*Directory.GetCurrentDirectory()*/ + "\\" + DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString()
+               + DateTime.Now.Day.ToString() + "_obrobione" + "_" + DateTime.Now.Hour.ToString() + "h" + DateTime.Now.Minute.ToString() + "m" + DateTime.Now.Second.ToString();
+        }
+
     }
 
-}
 
-
-struct SupportingValue
-{
-
-    public SupportingValue(uint countError1, uint countError2, uint fileNumerator, float integralBaseLine,
-        int indexOfTimeRow, int signalIndex, int secondNumerator, int signalIntegrationEndIndex, bool badFile, int longestList, int longestFile)
+    struct SupportingValue
     {
-        this.longestFile = longestFile;
-        this.countError1 = countError1;
-        this.countError2 = countError2;
-        this.fileNumerator = fileNumerator;
-        this.badFile = badFile;
-        this.integralBaseLine = integralBaseLine;
-        this.indexOfTimeRow = indexOfTimeRow;
-        this.signalIndex = signalIndex;
-        this.secondNumerator = secondNumerator;
-        this.signalIntegrationEndIndex = signalIntegrationEndIndex;
-        this.longestList = longestList;
+
+        public SupportingValue(uint countError1, uint countError2, uint fileNumerator, float integralBaseLine,
+            int indexOfTimeRow, int signalIndex, int secondNumerator, int signalIntegrationEndIndex, bool badFile, int longestList, int longestFile)
+        {
+            this.longestFile = longestFile;
+            this.countError1 = countError1;
+            this.countError2 = countError2;
+            this.fileNumerator = fileNumerator;
+            this.badFile = badFile;
+            this.integralBaseLine = integralBaseLine;
+            this.indexOfTimeRow = indexOfTimeRow;
+            this.signalIndex = signalIndex;
+            this.secondNumerator = secondNumerator;
+            this.signalIntegrationEndIndex = signalIntegrationEndIndex;
+            this.longestList = longestList;
+        }
+
+        public int longestFile;
+        public float integralBaseLine;
+        public int indexOfTimeRow;
+        public int signalIndex;
+        public int secondNumerator;
+        public int signalIntegrationEndIndex;
+        public int longestList;
+        public uint countError1;
+        public uint countError2;
+        public uint fileNumerator;
+        public bool badFile;
     }
 
-    public int longestFile;
-    public float integralBaseLine;
-    public int indexOfTimeRow;
-    public int signalIndex;
-    public int secondNumerator;
-    public int signalIntegrationEndIndex;
-    public int longestList;
-    public uint countError1;
-    public uint countError2;
-    public uint fileNumerator;
-    public bool badFile;
-}
 
-
-class Measurement
-{
-    public List<string> headersOfTable { get; set; }
-    public List<float> timeOfMeasurement { get; set; }
-    public List<float> measuredValue { get; set; }
-    public List<float> integralOfMeasuredValue { get; set; }
-    public List<float> conversion { get; set; }
-    public List<float> integralSum { get; set; }
-    public List<float> RpValues { get; set; }
-
-    public Measurement()
+    class Measurement
     {
-        headersOfTable = new List<string>();
-        timeOfMeasurement = new List<float>();
-        measuredValue = new List<float>();
-        integralOfMeasuredValue = new List<float>();
-        conversion = new List<float>();
-        integralSum = new List<float>();
-        RpValues = new List<float>();
+        public List<string> headersOfTable { get; set; }
+        public List<float> timeOfMeasurement { get; set; }
+        public List<float> measuredValue { get; set; }
+        public List<float> integralOfMeasuredValue { get; set; }
+        public List<float> conversion { get; set; }
+        public List<float> integralSum { get; set; }
+        public List<float> RpValues { get; set; }
+
+        public Measurement()
+        {
+            headersOfTable = new List<string>();
+            timeOfMeasurement = new List<float>();
+            measuredValue = new List<float>();
+            integralOfMeasuredValue = new List<float>();
+            conversion = new List<float>();
+            integralSum = new List<float>();
+            RpValues = new List<float>();
+        }
     }
-}
 
-class BigFuckingListOfAllData
-{
-    public List<List<float>> allData;
-    public List<string> headers;
-    public List<string> fileNames;
-    public int maxListLength;
-    public List<float> maxDSC { get; set; }
-    public List<float> maxDSCTime { get; set; }
-    public List<float> maxRp { get; set; }
-    public List<float> maxRpTime { get; set; }
-    public List<float> maxConversion { get; set; }
-    public List<string> tangentialDSC { get; set; }
-    public List<string> tangentialRp { get; set; }
-    public List<string> tangentialConversion { get; set; }
-    public List<float> inductionTime { get; set; }
-
-    public BigFuckingListOfAllData()
+    class BigFuckingListOfAllData
     {
-        allData = new List<List<float>>();
-        headers = new List<string>();
-        fileNames = new List<string>();
-        maxDSC = new List<float>();
-        maxDSCTime = new List<float>();
-        maxConversion = new List<float>();
-        maxRp = new List<float>();
-        maxRpTime = new List<float>();
-        tangentialConversion = new List<string>();
-        tangentialDSC = new List<string>();
-        tangentialRp = new List<string>();
-        inductionTime = new List<float>();
+        public List<List<float>> allData;
+        public List<string> headers;
+        public List<string> fileNames;
+        public int maxListLength;
+        public List<float> maxDSC { get; set; }
+        public List<float> maxDSCTime { get; set; }
+        public List<float> maxRp { get; set; }
+        public List<float> maxRpTime { get; set; }
+        public List<float> maxConversion { get; set; }
+        public List<string> tangentialDSC { get; set; }
+        public List<string> tangentialRp { get; set; }
+        public List<string> tangentialConversion { get; set; }
+        public List<float> inductionTime { get; set; }
+
+        public BigFuckingListOfAllData()
+        {
+            allData = new List<List<float>>();
+            headers = new List<string>();
+            fileNames = new List<string>();
+            maxDSC = new List<float>();
+            maxDSCTime = new List<float>();
+            maxConversion = new List<float>();
+            maxRp = new List<float>();
+            maxRpTime = new List<float>();
+            tangentialConversion = new List<string>();
+            tangentialDSC = new List<string>();
+            tangentialRp = new List<string>();
+            inductionTime = new List<float>();
+        }
     }
-}
 
 
 }
